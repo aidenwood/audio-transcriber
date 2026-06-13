@@ -1,0 +1,38 @@
+[package]
+name = "whisperline"
+version = "0.1.0"
+description = "Whisperline — drag-drop audio transcription"
+authors = ["Aiden Wood <hi@aidxn.com>"]
+license = "Proprietary"
+edition = "2021"
+
+[lib]
+name = "whisperline_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = ["protocol-asset", "tray-icon", "image-png"] }
+tauri-plugin-dialog = "2"
+tauri-plugin-fs = "2"
+tauri-plugin-shell = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1", features = ["full"] }
+tokio-util = { version = "0.7", features = ["io"] }
+image = { version = "0.25", default-features = false, features = ["png"] }
+reqwest = { version = "0.12", features = ["json", "multipart", "stream"] }
+anyhow = "1"
+thiserror = "1"
+uuid = { version = "1", features = ["v4"] }
+mime_guess = "2"
+ed25519-dalek = "2"
+base64 = "0.22"
+hex = "0.4"
+lofty = "0.22"
+
+[features]
+default = ["custom-protocol"]
+custom-protocol = ["tauri/custom-protocol"]

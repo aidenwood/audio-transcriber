@@ -18,6 +18,24 @@ const client = new AssemblyAI({
   apiKey: "35672e1be98b4fb3887856e58b55e2e5"
 });
 
+// ── Dev-only live reload ────────────────────────────────────────────
+// Watches public/ for changes; when something saves, the LiveReload
+// server pings the connected webviews over WebSocket and they refresh
+// themselves. Stop-gap until the Vite migration in TAURI_PORT.md.
+// Disabled when NODE_ENV=production so the prod binary doesn't ship a
+// 35344 listener or inject the snippet.
+if (process.env.NODE_ENV !== 'production') {
+  const livereload = require('livereload');
+  const connectLivereload = require('connect-livereload');
+  const lrServer = livereload.createServer({
+    exts: ['html', 'css', 'js'],
+    delay: 80,
+  });
+  lrServer.watch(path.join(__dirname, 'public'));
+  app.use(connectLivereload());
+  console.log('🔁  Live reload active — watching public/ on ws://localhost:35729');
+}
+
 // Middleware
 app.use(cors());
 app.use(express.json());

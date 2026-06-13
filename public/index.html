@@ -1,61 +1,250 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Local Audio Transcriber</title>
-    <link rel="stylesheet" href="styles.css">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Whisperline — local-first audio transcripts</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1><i class="fas fa-microphone"></i> Local Audio Transcriber</h1>
-            <p>Upload audio or video files for AI-powered transcription</p>
-        </header>
-
-        <main>
-            <!-- Upload Section -->
-            <section class="upload-section">
-                <div class="upload-area" id="uploadArea">
-                    <i class="fas fa-cloud-upload-alt"></i>
-                    <h3>Drop your files here or click to browse</h3>
-                    <p>Supports: MP3, WAV, MP4, MOV, AVI, and more</p>
-                    <input type="file" id="fileInput" accept="audio/*,video/*" multiple>
-                </div>
-                <div class="file-info" id="fileInfo" style="display: none;"></div>
-                <button id="uploadBtn" style="display: none;">Start Transcription</button>
-            </section>
-
-            <!-- Jobs Section -->
-            <section class="jobs-section">
-                <h2><i class="fas fa-list"></i> Transcription Jobs</h2>
-                <div id="jobsList" class="jobs-list">
-                    <div class="no-jobs">
-                        <i class="fas fa-inbox"></i>
-                        <p>No transcription jobs yet. Upload a file to get started!</p>
-                    </div>
-                </div>
-            </section>
-        </main>
+    <!-- Background atmospherics, same vibe as the marketing site. -->
+    <div class="bg-decor" aria-hidden="true">
+        <div class="bg-blob bg-blob--top"></div>
+        <div class="bg-blob bg-blob--bottom"></div>
     </div>
 
-    <!-- Modal for transcript display -->
-    <div id="transcriptModal" class="modal">
+    <header class="app-header">
+        <a class="brand" href="#">
+            <span class="brand-mark" aria-hidden="true">
+                <svg viewBox="0 0 32 32" width="28" height="28">
+                    <rect x="10" y="6" width="12" height="18" rx="6" ry="6" fill="#2dd4bf" />
+                    <line x1="16" y1="25" x2="16" y2="30" stroke="#5eead4" stroke-width="1.6" stroke-linecap="round" />
+                    <ellipse cx="16" cy="30" rx="6" ry="1.2" fill="#11141b" stroke="#5eead4" stroke-opacity="0.35" />
+                </svg>
+            </span>
+            <span class="brand-name">Whisperline</span>
+            <span class="brand-version">v1.0</span>
+        </a>
+        <div class="header-cluster">
+            <button type="button" id="licencePill" class="licence-pill" data-tier="free" title="Licence status">
+                <i class="fas fa-shield-halved" aria-hidden="true"></i>
+                <span id="licencePillLabel">Free tier</span>
+            </button>
+            <div class="header-status">
+                <span class="status-dot status-dot--ok" aria-hidden="true"></span>
+                <span class="status-label" id="connectionStatus">Local · ready</span>
+            </div>
+            <button type="button" id="settingsBtn" class="icon-btn" aria-label="Open settings" title="Settings">
+                <i class="fas fa-gear" aria-hidden="true"></i>
+            </button>
+        </div>
+    </header>
+
+    <main class="app-main">
+        <!-- HERO — sets the security-first tone immediately. -->
+        <section class="hero">
+            <p class="eyebrow">
+                <span class="eyebrow-dot" aria-hidden="true"></span>
+                Local-first · zero telemetry · no cloud storage
+            </p>
+            <h1 class="display">
+                <span class="display-full">Drag in a file. Get a transcript. Nothing leaves your machine without your say-so.</span>
+                <span class="display-compact" aria-hidden="true">Ready when you are.</span>
+            </h1>
+            <p class="hero-sub">Local-first. Files stay on your disk. One TLS call out. Your media, your transcripts, your machine.</p>
+        </section>
+
+        <!-- UPLOAD — primary action right after the hero. -->
+        <section class="upload-section">
+            <div class="section-head">
+                <h2 class="section-title">Drop a file</h2>
+                <p class="section-sub">Audio + video formats supported. Files up to 5:00 transcribe free — a Pro licence unlocks any length.</p>
+            </div>
+            <div class="upload-area" id="uploadArea">
+                <span class="upload-icon" aria-hidden="true"><i class="fas fa-cloud-arrow-up"></i></span>
+                <h3 class="upload-title">Drop here or click to browse</h3>
+                <p class="upload-formats">MP3 · WAV · M4A · AAC · FLAC · OGG · MP4 · MOV · AVI · MKV · WebM</p>
+                <p class="upload-trust">
+                    <i class="fas fa-circle-check" aria-hidden="true"></i>
+                    File reads happen in this process only. No drop-zone telemetry.
+                </p>
+                <input type="file" id="fileInput" accept="audio/*,video/*" multiple />
+            </div>
+            <div class="file-info" id="fileInfo" style="display: none;"></div>
+            <button id="uploadBtn" class="btn btn-primary" style="display: none;">
+                <i class="fas fa-play" aria-hidden="true"></i>
+                Start transcription
+            </button>
+        </section>
+
+        <!-- SECURITY PROMISES — quick-glance trust bar, below the upload. -->
+        <section class="trust-bar">
+            <div class="trust-item">
+                <span class="trust-icon" aria-hidden="true"><i class="fas fa-hard-drive"></i></span>
+                <div>
+                    <p class="trust-title">Files stay local</p>
+                    <p class="trust-body">No background sync. No "anonymous usage" beacons. The bridge does one thing.</p>
+                </div>
+            </div>
+            <div class="trust-item">
+                <span class="trust-icon" aria-hidden="true"><i class="fas fa-lock"></i></span>
+                <div>
+                    <p class="trust-title">TLS 1.3 only</p>
+                    <p class="trust-body">Uploads to AssemblyAI go over a single pinned HTTPS connection. Nothing else.</p>
+                </div>
+            </div>
+            <div class="trust-item">
+                <span class="trust-icon" aria-hidden="true"><i class="fas fa-trash-can"></i></span>
+                <div>
+                    <p class="trust-title">24-hour purge</p>
+                    <p class="trust-body">AssemblyAI deletes the upload within 24 h. Your local copy is untouched.</p>
+                </div>
+            </div>
+            <div class="trust-item">
+                <span class="trust-icon" aria-hidden="true"><i class="fas fa-shield-halved"></i></span>
+                <div>
+                    <p class="trust-title">Ed25519 licence</p>
+                    <p class="trust-body">Verified offline. No phone-home, no kill switch, no seat counting.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- JOBS -->
+        <section class="jobs-section">
+            <div class="section-head">
+                <h2 class="section-title">Transcription jobs</h2>
+                <p class="section-sub">All in-memory for this session. Nothing is written to disk unless you export.</p>
+            </div>
+            <div id="jobsList" class="jobs-list">
+                <div class="no-jobs">
+                    <span class="no-jobs-icon" aria-hidden="true"><i class="fas fa-inbox"></i></span>
+                    <p class="no-jobs-text">No jobs yet. Drop a file above to start.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- PRIVACY DEEP DIVE — the part trust-first buyers will scroll to. -->
+        <section class="privacy-deep">
+            <div class="section-head">
+                <p class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span>Privacy posture</p>
+                <h2 class="section-title">What this app does. And what it deliberately doesn't.</h2>
+            </div>
+            <div class="privacy-grid">
+                <article class="privacy-card privacy-card--does">
+                    <h3 class="privacy-heading"><i class="fas fa-check" aria-hidden="true"></i>What it does</h3>
+                    <ul class="privacy-list">
+                        <li>Read the local file you drag in. Sequential bytes, no copies, no thumbnails.</li>
+                        <li>Strip the audio track from video locally via the bundled ffmpeg sidecar.</li>
+                        <li>Upload that audio over a single TLS 1.3 connection to <code>api.assemblyai.com</code>.</li>
+                        <li>Poll the transcript endpoint until the job completes.</li>
+                        <li>Show the result in this window. Hold it in memory until you close the app.</li>
+                    </ul>
+                </article>
+                <article class="privacy-card privacy-card--doesnt">
+                    <h3 class="privacy-heading"><i class="fas fa-xmark" aria-hidden="true"></i>What it never does</h3>
+                    <ul class="privacy-list">
+                        <li>Phone home for licence checks. Verification is offline Ed25519.</li>
+                        <li>Ship usage telemetry. No analytics SDK, no Sentry, no Mixpanel.</li>
+                        <li>Auto-upload to cloud storage. Nothing gets backed up unless you do it.</li>
+                        <li>Index file metadata for "search" features. Your library is not our product.</li>
+                        <li>Train models on your audio. AssemblyAI's contract forbids it.</li>
+                    </ul>
+                </article>
+            </div>
+            <p class="privacy-footnote">
+                <i class="fas fa-shield-halved" aria-hidden="true"></i>
+                The network connection list is short on purpose. If you run Little Snitch or Lulu, you will see
+                <code>api.assemblyai.com:443</code> when a transcription starts. That's the whole network surface.
+            </p>
+        </section>
+
+        <footer class="app-footer">
+            <p>
+                Whisperline is part of the <a href="https://aidxn.com" target="_blank" rel="noopener">Aidxn</a>
+                small-tools ecosystem. Built in Brisbane. Source: <a href="mailto:hi@aidxn.com">hi@aidxn.com</a>.
+            </p>
+        </footer>
+    </main>
+
+    <!-- Transcript modal (kept structural — JS unchanged) -->
+    <div id="transcriptModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
         <div class="modal-content">
-            <span class="close">&times;</span>
-            <h2 id="modalTitle">Transcript</h2>
+            <button class="modal-close close" aria-label="Close transcript">&times;</button>
+            <h2 id="modalTitle" class="modal-title">Transcript</h2>
+            <p class="modal-trust">
+                <i class="fas fa-lock" aria-hidden="true"></i>
+                This view stays in-process. Copy or download to export — nothing auto-syncs.
+            </p>
             <div id="modalTranscript" class="transcript-content"></div>
             <div class="modal-actions">
-                <button id="copyBtn" class="btn-secondary">
-                    <i class="fas fa-copy"></i> Copy to Clipboard
+                <button id="copyBtn" class="btn btn-secondary">
+                    <i class="fas fa-copy" aria-hidden="true"></i>
+                    Copy to clipboard
                 </button>
-                <button id="downloadBtn" class="btn-primary">
-                    <i class="fas fa-download"></i> Download as TXT
+                <button id="downloadBtn" class="btn btn-primary">
+                    <i class="fas fa-download" aria-hidden="true"></i>
+                    Download as TXT
                 </button>
             </div>
         </div>
     </div>
+
+    <!-- Settings + Licence — right-docked drawer (data entry never lives in a
+         full-screen modal). Holds the BYO AssemblyAI key and the Pro licence. -->
+    <div id="settingsScrim" class="drawer-scrim" hidden></div>
+    <aside id="settingsDrawer" class="drawer" role="dialog" aria-modal="true" aria-labelledby="settingsTitle" aria-hidden="true">
+        <div class="drawer-head">
+            <h2 id="settingsTitle" class="drawer-title">Settings</h2>
+            <button type="button" id="settingsClose" class="icon-btn" aria-label="Close settings">
+                <i class="fas fa-xmark" aria-hidden="true"></i>
+            </button>
+        </div>
+
+        <div class="drawer-body">
+            <!-- AssemblyAI key — required for any transcription, stored locally. -->
+            <section class="drawer-section">
+                <h3 class="drawer-section-title"><i class="fas fa-key" aria-hidden="true"></i> AssemblyAI API key</h3>
+                <p class="drawer-section-sub">
+                    Bring your own key — it's stored locally on this machine and never sent anywhere
+                    except <code>api.assemblyai.com</code>. Grab one free at
+                    <a href="https://www.assemblyai.com/dashboard/signup" target="_blank" rel="noopener">assemblyai.com</a>.
+                </p>
+                <p id="apiKeyStatus" class="drawer-status" hidden></p>
+                <div class="drawer-field">
+                    <input type="password" id="apiKeyInput" class="drawer-input" placeholder="paste your AssemblyAI key" autocomplete="off" spellcheck="false" />
+                    <button type="button" id="apiKeySave" class="btn btn-primary drawer-btn">Save key</button>
+                </div>
+            </section>
+
+            <!-- Licence — unlocks unlimited length. -->
+            <section class="drawer-section">
+                <h3 class="drawer-section-title"><i class="fas fa-shield-halved" aria-hidden="true"></i> Pro licence</h3>
+                <div id="licenceFree" class="licence-state">
+                    <p class="drawer-section-sub">
+                        You're on the <strong>free tier</strong>: files up to <strong>5:00</strong> transcribe
+                        without a licence. A one-time Pro licence unlocks any length.
+                    </p>
+                    <a class="btn btn-secondary drawer-btn" href="https://whisperline.aidxn.com/#pricing" target="_blank" rel="noopener">
+                        <i class="fas fa-arrow-up-right-from-square" aria-hidden="true"></i> Get a Pro licence — AUD $49
+                    </a>
+                    <p class="drawer-section-sub" style="margin-top:14px;">Already bought? Paste your key:</p>
+                    <div class="drawer-field">
+                        <input type="text" id="licenceInput" class="drawer-input" placeholder="WL1.…" autocomplete="off" spellcheck="false" />
+                        <button type="button" id="licenceActivate" class="btn btn-primary drawer-btn">Activate</button>
+                    </div>
+                </div>
+                <div id="licencePro" class="licence-state" hidden>
+                    <p class="drawer-status drawer-status--ok">
+                        <i class="fas fa-circle-check" aria-hidden="true"></i>
+                        <span>Pro licence active — unlimited length unlocked.</span>
+                    </p>
+                    <p class="drawer-section-sub">Licensed to <span id="licenceEmail" class="drawer-email"></span>.</p>
+                    <button type="button" id="licenceDeactivate" class="btn btn-secondary drawer-btn">Remove licence from this machine</button>
+                </div>
+            </section>
+        </div>
+    </aside>
 
     <script src="script.js"></script>
 </body>
