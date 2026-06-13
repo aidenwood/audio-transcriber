@@ -3,7 +3,7 @@
  * This talks to the Rust core in src-tauri via window.__TAURI__ (the config
  * sets withGlobalTauri: true). The old Express/fetch transport is gone:
  *
- *   POST /api/transcribe   → invoke('start_transcription', { path, diarise })
+ *   POST /api/transcribe   → invoke('start_transcription', { args: { path, diarise } })
  *   GET  /api/jobs         → invoke('list_jobs')
  *   GET  /api/status/:id   → invoke('get_job', { id })
  *   DELETE /api/jobs/:id    → invoke('delete_job', { id })
@@ -320,7 +320,10 @@
             let needsSetup = false;
             for (const path of this.selectedPaths) {
                 try {
-                    await invoke('start_transcription', { path, diarise: true });
+                    // The Rust command parameter is named `args` (a
+                    // StartTranscriptionArgs struct), so Tauri expects the
+                    // payload nested under that key — not flattened.
+                    await invoke('start_transcription', { args: { path, diarise: true } });
                     started += 1;
                 } catch (err) {
                     const msg = errMsg(err);
