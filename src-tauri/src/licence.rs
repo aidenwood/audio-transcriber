@@ -43,7 +43,11 @@ fn verifying_key() -> VerifyingKey {
 /// Parse + cryptographically verify a licence key string. Returns the
 /// payload on success so the UI can show which email the licence is bound to.
 pub fn verify(key: &str) -> Result<LicencePayload, String> {
-    let key = key.trim();
+    // Strip ALL whitespace, not just the ends — long licence keys routinely
+    // pick up line breaks or stray spaces when copy-pasted out of a wrapped
+    // terminal, email, or chat. base64url never contains whitespace, so this
+    // is a safe, lossless normalisation that makes paste "just work".
+    let key: String = key.chars().filter(|c| !c.is_whitespace()).collect();
     let mut parts = key.split('.');
     let (magic, payload_b64, sig_b64) = match (parts.next(), parts.next(), parts.next(), parts.next()) {
         (Some(m), Some(p), Some(s), None) => (m, p, s),
